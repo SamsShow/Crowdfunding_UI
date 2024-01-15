@@ -1,7 +1,8 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
-import { ThirdwebProvider } from "@thirdweb-dev/react";
+import { ChainId,ThirdwebProvider } from "@thirdweb-dev/react";
+import {BrowserRouter as Route} from "react-router-dom";
 import "./styles/globals.css";
 
 // This is the chain your dApp will work on.
@@ -16,8 +17,11 @@ root.render(
     <ThirdwebProvider
       clientId={import.meta.env.VITE_TEMPLATE_CLIENT_ID}
       activeChain={activeChain}
+      desiredChain={ChainId.Sepolia}
     >
-      <App />
+      <Route>
+        <App />
+      </Route>
     </ThirdwebProvider>
   </React.StrictMode>
 );
