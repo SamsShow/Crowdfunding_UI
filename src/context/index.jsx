@@ -8,14 +8,14 @@ import {
 import { ethers } from "ethers";
 import { EditionMetadataWithOwnerOutputSchema } from "@thirdweb-dev/sdk";
 
-const CONTRACT_ADDRESS = "0x275cCefDd798CA10756230a9412bA9f4d64598cf";
+// const CONTRACT_ADDRESS = "0x275cCefDd798CA10756230a9412bA9f4d64598cf";
 
 const StateContext = createContext();
 
 const StateContextProvider = ({ children }) => {
-  const { contract } = useContract(CONTRACT_ADDRESS);
-  const { mutateAsync: createCampaign } = useContractWrite(contract, "createCampaign");
-
+  const { contract } = useContract("0x275cCefDd798CA10756230a9412bA9f4d64598cf");
+  const { mutateAsync: createCampign, isLoading } = useContractWrite(contract, "createCampign")
+  const provider = new ethers.providers.Web3Provider(window.ethereum, "any", { chainId: 1 });
   const address = useAddress();
   const connect = useMetamask();
 
@@ -34,7 +34,7 @@ const StateContextProvider = ({ children }) => {
 
   const publishCampaign = async (form) => {
     try {
-      const data = await createCampaign({
+      const data = await createCampign({
         args: [address, form.title, form.description, form.goal, new Date(form.deadline).getTime(), form.image],
       });
 

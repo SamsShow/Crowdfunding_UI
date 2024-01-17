@@ -4,12 +4,55 @@ import { CustomButton } from "../components";
 import { logo, menu, search, thirdweb } from "../assets";
 import { navlinks } from "../constants";
 import { useStateContext } from "../context";
+import { useWalletContext } from "../context/WalletContext";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const [isActive, setIsActive] = useState("dashboard");
   const [toggleDrawer, setToggleDrawer] = useState(false);
-  const { connect,address } = useStateContext();
+  const { connect, address } = useStateContext();
+  const { walletConfig } = useWalletContext();
+
+
+  const handleConnectClick = () => {
+    if (address) {
+      navigate("create-campaign");
+    } else {
+      connect();
+    }
+    console.log("Connected wallet address:", walletConfig?.address);
+  };
+
+  const renderLinks = () => (
+    <ul className="mb-4">
+      {navlinks.map((link) => (
+        <li
+          key={link.name}
+          className={`flex p-4 ${isActive === link.name ? "bg-[#3a3a43]" : ""}`}
+          onClick={() => {
+            setIsActive(link.name);
+            setToggleDrawer(false);
+            navigate(link.link);
+          }}
+        >
+          <img
+            src={link.imgUrl}
+            alt={link.name}
+            className={`w-[24px] h-[24px] object-contain ${
+              isActive === link.name ? "grayscale-0" : "grayscale"
+            }`}
+          />
+          <p
+            className={`ml-[20px] font-epilogue font-semibold text-[14px] ${
+              isActive === link.name ? "text-[#1dc071]" : "text-[#808191]"
+            }`}
+          >
+            {link.name}
+          </p>
+        </li>
+      ))}
+    </ul>
+  );
 
   return (
     <div className="flex md:flex-row flex-col-reverse justify-between mb-[35px] gap-6">
@@ -71,53 +114,21 @@ const Navbar = () => {
           // The dynamic classes are determined by the toggleDrawer state:
           // If toggleDrawer is false, the -translate-y-[100vh] class is applied, which moves the element off the screen vertically.
           // If toggleDrawer is true, the translate-y-0 class is applied, which brings the element back to its original position.
-          
+
           className={`absolute top-[60px] right-0 left-0 bg-[#1c1c24] z-10 shadow-secondary py-4 ${
             !toggleDrawer ? "-translate-y-[100vh]" : "translate-y-0"
           } transition-all duration-700`}
         >
-          <ul className="mb-4">
-            {/* For each link object in the navlinks array, a li element is rendered. The key prop is set to link.name, which should be a unique identifier for each link. */}
-
-            {navlinks.map((link) => (
-              <li
-                key={link.name}
-                className={`flex p-4 ${
-                  isActive === link.name && "bg-[#3a3a43]"
-                }`}
-                onClick={() => {
-                  setIsActive(link.name);
-                  setToggleDrawer(false);
-                  navigate(link.link);
-                }}
-              >
-                <img
-                  src={link.imgUrl}
-                  alt={link.name}
-                  className={`w-[24px] h-[24px] object-contain ${
-                    isActive === link.name ? "grayscale-0" : "grayscale"
-                  }`}
-                />
-                <p
-                  className={`ml-[20px] font-epilogue font-semibold text-[14px] ${
-                    isActive === link.name ? "text-[#1dc071]" : "text-[#808191]"
-                  }`}
-                >
-                  {link.name}
-                </p>
-              </li>
-            ))}
-          </ul>
+          {renderLinks()}
 
           <div className="flex mx-4">
             <CustomButton
               btnType="button"
-              title={address ? "Create a campaign" : "Connect"}
+              // title={address ? "Create a campaign" : "Connect"}
+              title={walletConfig ? "Connected" : "Connect Wallet"}
               styles={address ? "bg-[#1dc071]" : "bg-[#8c6dfd]"}
-              handleClick={() => {
-                if (address) navigate("create-campaign");
-                else connect();
-              }}
+              handleClick={handleConnectClick}
+              
             />
           </div>
         </div>
