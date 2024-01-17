@@ -1,74 +1,70 @@
-// address,form.title,form.description,form.goal,new Date(form.deadline).getTime(),form.image,)
-
-import React, { useContext, createContext } from "react";
-
+import React, { useContext, createContext, useEffect } from "react";
 import {
   useAddress,
   useContract,
-  useMetamask,
+  useConnect as useMetamask,
   useContractWrite,
 } from "@thirdweb-dev/react";
 import { ethers } from "ethers";
 import { EditionMetadataWithOwnerOutputSchema } from "@thirdweb-dev/sdk";
 
+const CONTRACT_ADDRESS = "0x275cCefDd798CA10756230a9412bA9f4d64598cf";
+
 const StateContext = createContext();
 
 const StateContextProvider = ({ children }) => {
-  const { contract } = useContract(
-    "0x275cCefDd798CA10756230a9412bA9f4d64598cf"
-  );
-  const { mutateAsync: createCampaign } = useContractWrite(
-    contract,
-    "createCampaign"
-  );
+  const { contract } = useContract(CONTRACT_ADDRESS);
+  const { mutateAsync: createCampaign } = useContractWrite(contract, "createCampaign");
 
   const address = useAddress();
   const connect = useMetamask();
 
+  const checkChainId = async () => {
+    if (window.ethereum) {
+      const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+      console.log("Chain ID:", chainId);
+    } else {
+      console.error("MetaMask not detected");
+    }
+  };
+
+  useEffect(() => {
+    checkChainId();
+  }, []);
+
   const publishCampaign = async (form) => {
     try {
       const data = await createCampaign({
-        args: [
-          address, // owner
-          form.title, // title
-          form.description, // description
-          form.goal,
-          new Date(form.deadline).getTime(), // deadline,
-          form.image,
-        ],
+        args: [address, form.title, form.description, form.goal, new Date(form.deadline).getTime(), form.image],
       });
 
-      console.log("contract call success", data);
+      console.log("Contract call success", data);
     } catch (error) {
-      console.log("contract call failure", error);
+      console.error("Contract call failure", error);
     }
   };
 
   const getCampaigns = async () => {
     const campaigns = await contract.call("getCampaigns");
 
-    const parsedCampaings = campaigns.map((campaign, i) => ({
+    const parsedCampaigns = campaigns.map((campaign, i) => ({
       owner: campaign.owner,
       title: campaign.title,
       description: campaign.description,
       target: ethers.utils.formatEther(campaign.target.toString()),
       deadline: campaign.deadline.toNumber(),
-      amountCollected: ethers.utils.formatEther(
-        campaign.amountCollected.toString()
-      ),
+      amountCollected: ethers.utils.formatEther(campaign.amountCollected.toString()),
       image: campaign.image,
       pId: i,
     }));
 
-    return parsedCampaings;
+    return parsedCampaigns;
   };
 
   const getUserCampaigns = async () => {
     const allCampaigns = await getCampaigns();
 
-    const filteredCampaigns = allCampaigns.filter(
-      (campaign) => campaign.owner === address
-    );
+    const filteredCampaigns = allCampaigns.filter((campaign) => campaign.owner === address);
 
     return filteredCampaigns;
   };
@@ -85,14 +81,10 @@ const StateContextProvider = ({ children }) => {
     const donations = await contract.call("getDonators", [pId]);
     const numberOfDonations = donations[0].length;
 
-    const parsedDonations = [];
-
-    for (let i = 0; i < numberOfDonations; i++) {
-      parsedDonations.push({
-        donator: donations[0][i],
-        donation: ethers.utils.formatEther(donations[1][i].toString()),
-      });
-    }
+    const parsedDonations = Array.from({ length: numberOfDonations }, (_, i) => ({
+      donator: donations[0][i],
+      donation: ethers.utils.formatEther(donations[1][i].toString()),
+    }));
 
     return parsedDonations;
   };
