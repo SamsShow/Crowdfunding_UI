@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import { ChainId,ThirdwebProvider } from "@thirdweb-dev/react";
 import {BrowserRouter as Route} from "react-router-dom";
+import {StateContextProvider} from './context';
 import "./styles/globals.css";
 
 // This is the chain your dApp will work on.
@@ -20,7 +21,9 @@ root.render(
       desiredChain={ChainId.Sepolia}
     >
       <Route>
-        <App />
+        <StateContextProvider>
+          <App />
+        </StateContextProvider>
       </Route>
     </ThirdwebProvider>
   </React.StrictMode>

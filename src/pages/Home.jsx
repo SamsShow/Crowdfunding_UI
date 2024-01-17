@@ -1,42 +1,32 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ethers } from 'ethers';
-import { money } from '../assets';
-import { CustomButton } from '../components';
-import { checkIfImage } from '../utils';
+import React, { useState, useEffect } from 'react'
 
+import { DisplayCampaigns } from '../components';
+import { useStateContext } from '../context'
 
-export default function Home() {
+const Home = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [campaigns, setCampaigns] = useState([]);
 
-    const navigate = useNavigate();
-    const [isLoding, setIsLoding] = React.useState(false);
-    const [form, setForm] = useState({
-        name: '',
-        title: '',
-        description: '',
-        image: '',
-        goal: '',
-        deadline: '',
-    })
+  const { address, contract, getCampaigns } = useStateContext();
 
-    const handelFormFieldChange = (fieldName,e) => {
-        setForm({...form, [fieldName]: e.target.value})
-    }
+  const fetchCampaigns = async () => {
+    setIsLoading(true);
+    const data = await getCampaigns();
+    setCampaigns(data);
+    setIsLoading(false);
+  }
 
-    const handelSubmit = () => {
+  useEffect(() => {
+    if(contract) fetchCampaigns();
+  }, [address, contract]);
 
-    }
-
-    return(
-        <div>
-            <FormField 
-                labelName ="Your Name"
-                placeholder="Enter your name"
-                inputType="text"
-                value={form.name}
-                handelChange={() => {}} 
-            />
-        </div>
-    )
-
+  return (
+    <DisplayCampaigns 
+      title="All Campaigns"
+      isLoading={isLoading}
+      campaigns={campaigns}
+    />
+  )
 }
+
+export default Home
